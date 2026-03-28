@@ -1,0 +1,223 @@
+{% comment %}
+  Announcement Swipe Bar (Swiper v12)
+  File: sections/announcement-swipe-bar.liquid
+{% endcomment %}
+<section
+  id="sb-{{ section.id }}"
+  class="sb-wrap"
+  aria-label="{{ section.settings.aria_label | escape }}"
+  style="
+    --sb-bg: {{ section.settings.bg_color }};
+    --sb-fg: {{ section.settings.text_color }};
+    --sb-h: {{ section.settings.bar_height }}px;
+    --sb-fs: {{ section.settings.font_size }}px;
+  "
+>
+  {%- comment -%} Swiper assets (v12) {%- endcomment -%}
+  <link rel="stylesheet" href="https://unpkg.com/swiper@12.0.1/swiper-bundle.min.css">
+  <div class="sb-bar">
+    <div class="swiper sb-swiper">
+      <div class="swiper-wrapper">
+        {%- if section.blocks.size > 0 -%}
+          {%- for block in section.blocks -%}
+            <div class="swiper-slide" {{ block.shopify_attributes }}>
+              <span class="sb-text">{{ block.settings.text | escape }}</span>
+            </div>
+          {%- endfor -%}
+        {%- else -%}
+          <div class="swiper-slide"><span class="sb-text">Eerste bericht</span></div>
+          <div class="swiper-slide"><span class="sb-text">Tweede bericht</span></div>
+          <div class="swiper-slide"><span class="sb-text">Derde bericht</span></div>
+        {%- endif -%}
+      </div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </div>
+
+  <style>
+    #sb-{{ section.id }} {
+      background: var(--sb-bg);
+      color: var(--sb-fg);
+      font-size: 0; /* voorkomt whitespace-gaps */
+    }
+    #sb-{{ section.id }} .sb-bar {
+      height: var(--sb-h);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    #sb-{{ section.id }} .sb-swiper {
+      width: 100%;
+      height: 100%;
+    }
+    #sb-{{ section.id }} .swiper-wrapper { align-items: center; }
+    #sb-{{ section.id }} .swiper-slide {
+      display: flex; align-items: center; justify-content: center;
+      height: 100%;
+      padding: 0 12px;
+    }
+    #sb-{{ section.id }} .sb-text {
+      display: inline-block;
+      font-size: var(--sb-fs);
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 92vw;
+    }
+
+    /* Dots: klein en subtiel */
+    #sb-{{ section.id }} .swiper-pagination {
+      position: static;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 0 8px;
+    }
+    #sb-{{ section.id }} .swiper-pagination-bullet {
+      width: 6px; height: 6px;
+      background: currentColor;
+      opacity: .35;
+    }
+    #sb-{{ section.id }} .swiper-pagination-bullet-active {
+      opacity: .95;
+    }
+  </style>
+
+  <script src="https://unpkg.com/swiper@12.0.1/swiper-bundle.min.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var root = document.getElementById('sb-{{ section.id }}');
+      if (!root) return;
+
+      function init() {
+        // Verwijder oude instance indien opnieuw gerenderd in editor
+        if (root._swiper && root._swiper.destroy) {
+          root._swiper.destroy(true, true);
+        }
+
+        var swiper = new Swiper('#sb-{{ section.id }} .sb-swiper', {
+          slidesPerView: 1,
+          allowTouchMove: true,
+          loop: {{ section.settings.loop | json }},
+          centeredSlides: true,
+          resistanceRatio: 0.85,
+          speed: 350,
+          keyboard: { enabled: true },
+          a11y: { enabled: true },
+          pagination: {
+            el: '#sb-{{ section.id }} .swiper-pagination',
+            clickable: true
+          },
+          autoplay: {% if section.settings.autoplay %}{
+            delay: {{ section.settings.autoplay_ms | default: 4000 | json }},
+            pauseOnMouseEnter: true,
+            disableOnInteraction: false
+          }{% else %}false{% endif %}
+        });
+
+        root._swiper = swiper;
+      }
+
+      if (window.Swiper) { init(); }
+      else {
+        // als script met defer nog niet geladen is
+        var check = setInterval(function() {
+          if (window.Swiper) { clearInterval(check); init(); }
+        }, 50);
+        setTimeout(function(){ clearInterval(check); }, 5000);
+      }
+
+      // Live update in Theme Editor
+      document.addEventListener('shopify:section:load', function(e){
+        if (e.detail && e.detail.sectionId === '{{ section.id }}') init();
+      });
+      document.addEventListener('shopify:section:unload', function(e){
+        if (e.detail && e.detail.sectionId === '{{ section.id }}' && root._swiper) {
+          root._swiper.destroy(true, true);
+        }
+      });
+    });
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "Announcement Swipe Bar",
+  "tag": "section",
+  "class": "shopify-section--announcement-swipe-bar",
+  "settings": [
+    {
+      "type": "text",
+      "id": "aria_label",
+      "label": "ARIA label",
+      "default": "Mededelingenbalk"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Achtergrondkleur",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Tekstkleur",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "bar_height",
+      "label": "Balkhoogte",
+      "min": 22,
+      "max": 56,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Tekstgrootte",
+      "min": 10,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "checkbox",
+      "id": "loop",
+      "label": "Loop (blijft rondgaan)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Autoplay",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_ms",
+      "label": "Autoplay vertraging (ms)",
+      "min": 1500,
+      "max": 8000,
+      "step": 250,
+      "default": 4000
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Bericht",
+      "limit": 3,
+      "settings": [
+        { "type": "text", "id": "text", "label": "Tekst", "default": "Gratis verzending boven €50" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Announcement Swipe Bar", "category": "Banners" }]
+}
+{% endschema %}

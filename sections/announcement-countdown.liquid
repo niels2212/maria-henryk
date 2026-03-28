@@ -1,0 +1,109 @@
+<!-- sections/announcement-countdown.liquid -->
+{% schema %}
+{
+  "name": "Announcement Countdown",
+  "settings": [
+    {
+      "type": "text",
+      "id": "announcement_text",
+      "label": "Announcement tekst",
+      "default": "FINAL HOURS OF OUR CLOSURE SALE"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Achtergrondkleur",
+      "default": "#0F0F0F"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Tekstkleur",
+      "default": "#C20000"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Announcement Countdown"
+    }
+  ]
+}
+{% endschema %}
+
+<div id="announcement-bar" style="background-color: {{ section.settings.background_color }}; color: {{ section.settings.text_color }}; padding: 12px 0;">
+  <div id="announcement-content" class="announcement-content" style="font-weight: bold;">
+    <span id="announcement-timer" style="color: #ffffff; font-weight: bold;"></span>
+    <span id="announcement-text" style="font-weight: bold;">{{ section.settings.announcement_text }}</span>
+  </div>
+</div>
+
+<style>
+  #announcement-bar {
+    width: 100%;
+    text-align: center;
+    z-index: 1000;
+  }
+
+  .announcement-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @media (min-width: 749px){
+    .announcement-content, #announcement-timer {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .announcement-content {
+      font-size: 10px;
+    }
+    #announcement-timer {
+      order: -1;
+      margin-right: 5px;
+      font-size: 9px;
+    }
+  }
+
+  #announcement-timer {
+    margin-right: 5px;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const timerElement = document.getElementById("announcement-timer");
+
+    function updateCountdown() {
+      // current time in Amsterdam
+      const amsTime = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "Europe/Amsterdam" })
+      );
+
+      // tomorrow at 00:00 in Amsterdam
+      const tomorrow = new Date(amsTime);
+      tomorrow.setDate(amsTime.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+
+      let diff = tomorrow - amsTime;
+      if (diff <= 0) {
+        // if already past midnight, reset to next full day
+        diff = 24 * 60 * 60 * 1000;
+      }
+
+      const hours   = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      timerElement.textContent = 
+        `${String(hours).padStart(2, '0')}:` +
+        `${String(minutes).padStart(2, '0')}:` +
+        `${String(seconds).padStart(2, '0')}`;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  });
+</script>
